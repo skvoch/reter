@@ -1,4 +1,4 @@
-# reter - task scheduler with ectd locks
+# Reter - task scheduler with ectd locks
 
 ### Example
 ```go
