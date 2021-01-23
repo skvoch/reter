@@ -1,5 +1,6 @@
 # reter - task scheduler with ectd locks
 
+### Example
 ```go
 s, err := scheduler.New(scheduler.Zerolog(log.Logger), &scheduler.Options{
 		Etcd: scheduler.EtcdOptions{
