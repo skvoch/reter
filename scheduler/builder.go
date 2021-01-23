@@ -1,6 +1,7 @@
 package scheduler
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -37,7 +38,7 @@ type Do struct {
 	builder *Builder
 }
 
-func (d *Do) Do(name string, handler func()) error {
+func (d *Do) Do(ctx context.Context, name string, handler func()) error {
 	if handler == nil {
 		return ErrEmptyHandler
 	}
@@ -52,7 +53,7 @@ func (d *Do) Do(name string, handler func()) error {
 		name:     name,
 	}
 
-	if err := d.builder.reterInstance.addTask(task); err != nil {
+	if err := d.builder.reterInstance.runTask(ctx, task); err != nil {
 		return fmt.Errorf("failed to add task: %w", err)
 	}
 	return nil

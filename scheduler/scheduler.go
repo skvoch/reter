@@ -55,19 +55,13 @@ func (r *Scheduler) Every(count int) *Builder {
 	return newBuilder(r, count)
 }
 
-func (r *Scheduler) addTask(task *Task) error {
+func (r *Scheduler) runTask(ctx context.Context, task *Task) error {
 	_, ok := r.tasks[task.name]
 	if ok {
 		return ErrNotUniqueTaskName
 	}
-	r.tasks[task.name] = task
+	r.watcher(ctx, task)
 	return nil
-}
-
-func (r *Scheduler) Run(ctx context.Context) {
-	for _, task := range r.tasks {
-		go r.watcher(ctx, task)
-	}
 }
 
 func (r *Scheduler) watcher(ctx context.Context, task *Task) {
@@ -77,9 +71,11 @@ func (r *Scheduler) watcher(ctx context.Context, task *Task) {
 	for {
 		select {
 		case <-ctx.Done():
+			r.logger.Debug(fmt.Sprintf("task %s - has been finished", task.name))
+			return
 
 		case <-ticker.C:
-			go func() {
+			func() {
 				var (
 					err error
 					l   lock.Lock
