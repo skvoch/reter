@@ -13,7 +13,7 @@ s, err := scheduler.New(scheduler.Zerolog(log.Logger), &scheduler.Options{
 	}
 	g, ctx := errgroup.WithContext(context.Background())
 	g.Go(func() error {
-		return s.Every(2).Seconds().Do(ctx, "get_data", func() {
+		return s.Every(2).Seconds().Do(ctx, "task_name", func() {
 			fmt.Println("doing work")
 			time.Sleep(time.Second * 5)
 		})
