@@ -2,7 +2,7 @@
 
 ### Example
 ```go
-s, err := scheduler.New(scheduler.Zerolog(log.Logger), &scheduler.Options{
+  	s, err := scheduler.New(scheduler.Zerolog(log.Logger), &scheduler.Options{
 		Etcd: scheduler.EtcdOptions{
 			Endpoints:   []string{"127.0.0.1:2379"},
 			DialTimeout: time.Second * 5,
