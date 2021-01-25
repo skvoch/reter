@@ -23,9 +23,8 @@ if err != nil {
 
 g, ctx := errgroup.WithContext(context.Background())
 g.Go(func() error {
-	return s.Every(2).Seconds().Do(ctx, "task_name", func() {
+	return s.Every(30).Seconds().Do(ctx, "task_name", func() {
 		fmt.Println("doing work")
-		time.Sleep(time.Second * 5)
 	})
 })
 ```
