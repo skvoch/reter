@@ -1,5 +1,12 @@
 # Reter - task scheduler with ectd locks
 
+### Algorithm
+1. Checking the time since last action
+2. If difference between time.Now() and last action time less than interval - skipping
+3. Locking and calling a handler func
+4. Updating last action time, and unlocking
+
+
 ### Example
 ```go
 s, err := scheduler.New(scheduler.Zerolog(log.Logger), &scheduler.Options{
