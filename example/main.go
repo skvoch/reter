@@ -40,9 +40,8 @@ func main() {
 	g.Go(NotifySigterm)
 
 	g.Go(func() error {
-		return s.Every(2).Seconds().Do(ctx, "get_data", func() {
+		return s.Every(30).Seconds().Do(ctx, "get_data", func() {
 			fmt.Println("doing work")
-			time.Sleep(time.Second * 5)
 		})
 	})
 
