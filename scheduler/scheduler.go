@@ -85,6 +85,7 @@ func (s *Scheduler) watcher(ctx context.Context, task *Task) {
 				lastActionTime, err := s.getLastActionTime(ctx, task.name)
 				if err != nil {
 					s.logger.Error(err, "getting last action time")
+					return
 				}
 
 				if lastActionTime != nil && time.Now().Sub(*lastActionTime) < task.interval {
