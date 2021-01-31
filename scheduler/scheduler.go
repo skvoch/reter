@@ -31,7 +31,7 @@ func New(logger Logger, opts *Options) (*Scheduler, error) {
 
 	return &Scheduler{
 		opts:   opts,
-		tasks:  make(map[string]*Task),
+		tasks:  make(map[string]interface{}),
 		logger: logger,
 		etcd:   client,
 		locker: lock.NewEtcdLocker(client, lock.WithTryLockTimeout(time.Second)),
@@ -39,7 +39,7 @@ func New(logger Logger, opts *Options) (*Scheduler, error) {
 }
 
 type Scheduler struct {
-	tasks map[string]*Task
+	tasks map[string]interface{}
 	opts  *Options
 
 	locker lock.Locker
@@ -62,6 +62,8 @@ func (s *Scheduler) runTask(ctx context.Context, task *Task) error {
 	if ok {
 		return ErrNotUniqueTaskName
 	}
+	s.tasks[task.name] = nil
+
 	s.watcher(ctx, task)
 	return nil
 }
@@ -111,7 +113,7 @@ func (s *Scheduler) watcher(ctx context.Context, task *Task) {
 				}
 
 				if err := l.Release(); err != nil {
-					s.logger.Error(fmt.Errorf("failed to realse lock: %w", err), "releasing lock")
+					s.logger.Error(fmt.Errorf("failed to release lock: %w", err), "releasing lock")
 					return
 				}
 				s.logger.Debug(fmt.Sprintf("task %s - lock has been released", task.name))
