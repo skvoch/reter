@@ -2,10 +2,9 @@
 
 ### Algorithm
 1. Checking the time since the last action
-2. If difference between time.Now() and last action time less than interval - skipping
-3. Locking and calling a handler func
+2. If the difference between time.Now() and last action time less than interval - skipping
+3. Locking and calling a handler function
 4. Updating last action time, and unlocking
-
 
 ### Example
 ```go
@@ -27,4 +26,14 @@ g.Go(func() error {
 		fmt.Println("doing work")
 	})
 })
+```
+
+### Warning
+If you have some issue with building your application, please put these lines to *go.mod* file
+```go
+replace (
+	github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.3
+	go.etcd.io/etcd => go.etcd.io/etcd v0.0.0-20200520232829-54ba9589114f
+	google.golang.org/grpc v1.32.0 => google.golang.org/grpc v1.26.0
+)
 ```
