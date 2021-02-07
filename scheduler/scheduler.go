@@ -4,22 +4,35 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Scalingo/go-etcd-lock/lock"
 	"time"
 
+	"github.com/Scalingo/go-etcd-lock/lock"
+	"github.com/skvoch/reter/scheduler/builder"
+	"github.com/skvoch/reter/scheduler/models"
+
 	etcd "go.etcd.io/etcd/clientv3"
+)
+
+var (
+	ErrNotUniqueTaskName = errors.New("not unique task name")
+	ErrNilHandler        = errors.New("handler func is nil")
 )
 
 type EtcdOptions struct {
 	Endpoints   []string
 	DialTimeout time.Duration
 }
+
 type Options struct {
 	Etcd    EtcdOptions
-	LockTtl time.Duration
+	LockTTL time.Duration
 }
 
-func New(logger Logger, opts *Options) (*Scheduler, error) {
+type Scheduler interface {
+	Every(count uint) *builder.Builder
+}
+
+func New(logger Logger, opts *Options) (Scheduler, error) {
 	client, err := etcd.New(etcd.Config{
 		Endpoints:   opts.Etcd.Endpoints,
 		DialTimeout: opts.Etcd.DialTimeout,
@@ -29,7 +42,7 @@ func New(logger Logger, opts *Options) (*Scheduler, error) {
 		return nil, fmt.Errorf("failed to create etcd client: %w", err)
 	}
 
-	return &Scheduler{
+	return &Impl{
 		opts:   opts,
 		tasks:  make(map[string]interface{}),
 		logger: logger,
@@ -38,7 +51,7 @@ func New(logger Logger, opts *Options) (*Scheduler, error) {
 	}, nil
 }
 
-type Scheduler struct {
+type Impl struct {
 	tasks map[string]interface{}
 	opts  *Options
 
@@ -47,35 +60,33 @@ type Scheduler struct {
 	etcd   *etcd.Client
 }
 
-type Task struct {
-	handler  func()
-	interval time.Duration
-	name     string
+func (s *Impl) Every(count uint) *builder.Builder {
+	return builder.New(s, count)
 }
 
-func (s *Scheduler) Every(count int) *Builder {
-	return newBuilder(s, count)
-}
+func (s *Impl) Run(ctx context.Context, task models.Task) error {
+	if task.Handler == nil {
+		return ErrNilHandler
+	}
 
-func (s *Scheduler) runTask(ctx context.Context, task *Task) error {
-	_, ok := s.tasks[task.name]
+	_, ok := s.tasks[task.Name]
 	if ok {
 		return ErrNotUniqueTaskName
 	}
-	s.tasks[task.name] = nil
+	s.tasks[task.Name] = nil
 
 	s.watcher(ctx, task)
 	return nil
 }
 
-func (s *Scheduler) watcher(ctx context.Context, task *Task) {
-	s.logger.Debug(fmt.Sprintf("run task: %s", task.name))
-	ticker := time.NewTicker(task.interval)
+func (s *Impl) watcher(ctx context.Context, task models.Task) {
+	s.logger.Debug(fmt.Sprintf("run task: %s", task.Name))
+	ticker := time.NewTicker(task.Interval)
 
 	for {
 		select {
 		case <-ctx.Done():
-			s.logger.Debug(fmt.Sprintf("task %s - has been finished", task.name))
+			s.logger.Debug(fmt.Sprintf("task %s - has been finished", task.Name))
 			return
 
 		case <-ticker.C:
@@ -84,30 +95,30 @@ func (s *Scheduler) watcher(ctx context.Context, task *Task) {
 					err error
 					l   lock.Lock
 				)
-				lastActionTime, err := s.getLastActionTime(ctx, task.name)
+				lastActionTime, err := s.getLastActionTime(ctx, task.Name)
 				if err != nil {
 					s.logger.Error(err, "getting last action time")
 					return
 				}
 
-				if lastActionTime != nil && time.Now().Sub(*lastActionTime) < task.interval {
+				if lastActionTime != nil && time.Since(*lastActionTime) < task.Interval {
 					s.logger.Debug("too early")
 					return
 				}
 
-				if l, err = s.locker.Acquire(task.name, int(s.opts.LockTtl.Seconds())); err != nil {
+				if l, err = s.locker.Acquire(task.Name, int(s.opts.LockTTL.Seconds())); err != nil {
 					if errors.Is(err, &lock.ErrAlreadyLocked{}) {
-						s.logger.Debug(fmt.Sprintf("task %s already locked", task.name))
+						s.logger.Debug(fmt.Sprintf("task %s already locked", task.Name))
 						return
 					}
 					s.logger.Error(err, "trying to acquire")
 					return
 				}
 
-				s.logger.Debug(fmt.Sprintf("task %s - lock has been locked", task.name))
-				task.handler()
+				s.logger.Debug(fmt.Sprintf("task %s - lock has been locked", task.Name))
+				task.Handler()
 
-				if err := s.setLastActionTime(ctx, task.name, time.Now()); err != nil {
+				if err := s.setLastActionTime(ctx, task.Name, time.Now()); err != nil {
 					s.logger.Error(err, "setting last action time")
 					return
 				}
@@ -116,13 +127,13 @@ func (s *Scheduler) watcher(ctx context.Context, task *Task) {
 					s.logger.Error(fmt.Errorf("failed to release lock: %w", err), "releasing lock")
 					return
 				}
-				s.logger.Debug(fmt.Sprintf("task %s - lock has been released", task.name))
+				s.logger.Debug(fmt.Sprintf("task %s - lock has been released", task.Name))
 			}()
 		}
 	}
 }
 
-func (s *Scheduler) getLastActionTime(ctx context.Context, taskName string) (*time.Time, error) {
+func (s *Impl) getLastActionTime(ctx context.Context, taskName string) (*time.Time, error) {
 	res, err := s.etcd.Get(ctx, taskName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get last action time: %w", err)
@@ -137,7 +148,7 @@ func (s *Scheduler) getLastActionTime(ctx context.Context, taskName string) (*ti
 	return &out, nil
 }
 
-func (s *Scheduler) setLastActionTime(ctx context.Context, taskName string, t time.Time) error {
+func (s *Impl) setLastActionTime(ctx context.Context, taskName string, t time.Time) error {
 	if _, err := s.etcd.Put(ctx, taskName, t.Format(time.RFC3339)); err != nil {
 		return fmt.Errorf("failed to set last action time: %w", err)
 	}
