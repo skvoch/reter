@@ -9,15 +9,15 @@ import (
 )
 
 var (
-	ErrEmptyHandler  = errors.New("empty handler func")
-	ErrEmptyTaskName = errors.New("empty task name")
+	ErrEmptyTaskName      = errors.New("task name is nil")
+	ErrTaskIntervalIsZero = errors.New("task interval is zero")
 )
 
 type Runner interface {
-	Run(ctx context.Context, task *models.Task) error
+	Run(ctx context.Context, task models.Task) error
 }
 
-func New(runner Runner, count int) *Builder {
+func New(runner Runner, count uint) *Builder {
 	return &Builder{
 		count:  count,
 		runner: runner,
@@ -25,7 +25,7 @@ func New(runner Runner, count int) *Builder {
 }
 
 type Builder struct {
-	count    int
+	count    uint
 	interval time.Duration
 
 	runner Runner
@@ -50,18 +50,18 @@ type Do struct {
 }
 
 func (d *Do) Do(ctx context.Context, name string, handler func()) error {
-	if handler == nil {
-		return ErrEmptyHandler
-	}
-
-	if name == "" {
-		return ErrEmptyTaskName
-	}
-
-	task := &models.Task{
+	task := models.Task{
 		Handler:  handler,
 		Interval: d.builder.interval,
 		Name:     name,
+	}
+
+	if task.Name == "" {
+		return ErrEmptyTaskName
+	}
+
+	if task.Interval == 0 {
+		return ErrTaskIntervalIsZero
 	}
 
 	if err := d.builder.runner.Run(ctx, task); err != nil {

@@ -15,6 +15,7 @@ import (
 
 var (
 	ErrNotUniqueTaskName = errors.New("not unique task name")
+	ErrNilHandler        = errors.New("handler func is nil")
 )
 
 type EtcdOptions struct {
@@ -28,7 +29,7 @@ type Options struct {
 }
 
 type Scheduler interface {
-	Every(count int) *builder.Builder
+	Every(count uint) *builder.Builder
 }
 
 func New(logger Logger, opts *Options) (Scheduler, error) {
@@ -59,11 +60,15 @@ type Impl struct {
 	etcd   *etcd.Client
 }
 
-func (s *Impl) Every(count int) *builder.Builder {
+func (s *Impl) Every(count uint) *builder.Builder {
 	return builder.New(s, count)
 }
 
-func (s *Impl) Run(ctx context.Context, task *models.Task) error {
+func (s *Impl) Run(ctx context.Context, task models.Task) error {
+	if task.Handler == nil {
+		return ErrNilHandler
+	}
+
 	_, ok := s.tasks[task.Name]
 	if ok {
 		return ErrNotUniqueTaskName
@@ -74,7 +79,7 @@ func (s *Impl) Run(ctx context.Context, task *models.Task) error {
 	return nil
 }
 
-func (s *Impl) watcher(ctx context.Context, task *models.Task) {
+func (s *Impl) watcher(ctx context.Context, task models.Task) {
 	s.logger.Debug(fmt.Sprintf("run task: %s", task.Name))
 	ticker := time.NewTicker(task.Interval)
 

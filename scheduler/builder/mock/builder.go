@@ -35,7 +35,7 @@ func (m *MockRunner) EXPECT() *MockRunnerMockRecorder {
 }
 
 // Run mocks base method
-func (m *MockRunner) Run(ctx context.Context, task *models.Task) error {
+func (m *MockRunner) Run(ctx context.Context, task models.Task) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Run", ctx, task)
 	ret0, _ := ret[0].(error)
