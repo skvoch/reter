@@ -42,7 +42,7 @@ func New(logger Logger, opts *Options) (Scheduler, error) {
 		return nil, fmt.Errorf("failed to create etcd client: %w", err)
 	}
 
-	return &Impl{
+	return &impl{
 		opts:   opts,
 		tasks:  make(map[string]interface{}),
 		logger: logger,
@@ -51,7 +51,7 @@ func New(logger Logger, opts *Options) (Scheduler, error) {
 	}, nil
 }
 
-type Impl struct {
+type impl struct {
 	tasks map[string]interface{}
 	opts  *Options
 
@@ -60,11 +60,22 @@ type Impl struct {
 	etcd   *etcd.Client
 }
 
-func (s *Impl) Every(count uint) *builder.Builder {
+func (s *impl) Every(count uint) *builder.Builder {
 	return builder.New(s, count)
 }
 
-func (s *Impl) Run(ctx context.Context, task models.Task) error {
+func (s *impl) Run(ctx context.Context, task models.Task) error {
+	if err := s.validateTask(task); err != nil {
+		return fmt.Errorf("failed to validate task: %w", err)
+	}
+
+	s.tasks[task.Name] = struct{}{}
+	s.watcher(ctx, task)
+
+	return nil
+}
+
+func (s *impl) validateTask(task models.Task) error {
 	if task.Handler == nil {
 		return ErrNilHandler
 	}
@@ -73,13 +84,10 @@ func (s *Impl) Run(ctx context.Context, task models.Task) error {
 	if ok {
 		return ErrNotUniqueTaskName
 	}
-	s.tasks[task.Name] = nil
-
-	s.watcher(ctx, task)
 	return nil
 }
 
-func (s *Impl) watcher(ctx context.Context, task models.Task) {
+func (s *impl) watcher(ctx context.Context, task models.Task) {
 	s.logger.Debug(fmt.Sprintf("run task: %s", task.Name))
 	ticker := time.NewTicker(task.Interval)
 
@@ -133,7 +141,7 @@ func (s *Impl) watcher(ctx context.Context, task models.Task) {
 	}
 }
 
-func (s *Impl) getLastActionTime(ctx context.Context, taskName string) (*time.Time, error) {
+func (s *impl) getLastActionTime(ctx context.Context, taskName string) (*time.Time, error) {
 	res, err := s.etcd.Get(ctx, taskName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get last action time: %w", err)
@@ -148,7 +156,7 @@ func (s *Impl) getLastActionTime(ctx context.Context, taskName string) (*time.Ti
 	return &out, nil
 }
 
-func (s *Impl) setLastActionTime(ctx context.Context, taskName string, t time.Time) error {
+func (s *impl) setLastActionTime(ctx context.Context, taskName string, t time.Time) error {
 	if _, err := s.etcd.Put(ctx, taskName, t.Format(time.RFC3339)); err != nil {
 		return fmt.Errorf("failed to set last action time: %w", err)
 	}
