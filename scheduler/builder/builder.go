@@ -1,15 +1,26 @@
-package scheduler
+package builder
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"github.com/skvoch/reter/scheduler/models"
 	"time"
 )
 
-func newBuilder(instance *Scheduler, count int) *Builder {
+var (
+	ErrEmptyHandler  = errors.New("empty handler func")
+	ErrEmptyTaskName = errors.New("empty task name")
+)
+
+type Runner interface {
+	Run(ctx context.Context, task *models.Task) error
+}
+
+func New(runner Runner, count int) *Builder {
 	return &Builder{
-		count:         count,
-		reterInstance: instance,
+		count:  count,
+		runner: runner,
 	}
 }
 
@@ -17,7 +28,7 @@ type Builder struct {
 	count    int
 	interval time.Duration
 
-	reterInstance *Scheduler
+	runner Runner
 }
 
 func (b *Builder) Seconds() *Do {
@@ -44,16 +55,16 @@ func (d *Do) Do(ctx context.Context, name string, handler func()) error {
 	}
 
 	if name == "" {
-		return ErrEmptyTask
+		return ErrEmptyTaskName
 	}
 
-	task := &Task{
-		handler:  handler,
-		interval: d.builder.interval,
-		name:     name,
+	task := &models.Task{
+		Handler:  handler,
+		Interval: d.builder.interval,
+		Name:     name,
 	}
 
-	if err := d.builder.reterInstance.runTask(ctx, task); err != nil {
+	if err := d.builder.runner.Run(ctx, task); err != nil {
 		return fmt.Errorf("failed to add task: %w", err)
 	}
 	return nil

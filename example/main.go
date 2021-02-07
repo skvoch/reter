@@ -30,8 +30,9 @@ func main() {
 			Endpoints:   []string{"127.0.0.1:2379"},
 			DialTimeout: time.Second * 5,
 		},
-		LockTtl: time.Minute * 1,
+		LockTTL: time.Minute * 1,
 	})
+
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to connect to etcd")
 	}
