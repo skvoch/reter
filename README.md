@@ -1,4 +1,5 @@
 # Reter - task scheduler with ectd locks
+![Tests](https://github.com/skvoch/reter/workflows/tests/badge.svg)
 
 ### Algorithm
 1. Checking the time since the last action
