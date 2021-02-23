@@ -9,6 +9,7 @@ type Logger interface {
 }
 
 func Zerolog(logger zerolog.Logger) Logger {
+
 	return &ZerologImpl{
 		logger: logger,
 	}
