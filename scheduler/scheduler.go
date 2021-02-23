@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/skvoch/go-etcd-lock/v5/lock"
@@ -42,17 +43,19 @@ func New(logger Logger, opts *Options) (Scheduler, error) {
 	}
 
 	return &impl{
-		opts:   opts,
-		tasks:  make(map[string]interface{}),
-		logger: logger,
-		etcd:   client,
-		locker: lock.NewEtcdLocker(client, lock.WithMaxTryLockTimeout(opts.Timeout)),
+		opts:    opts,
+		tasks:   make(map[string]interface{}),
+		logger:  logger,
+		tasksMx: &sync.Mutex{},
+		etcd:    client,
+		locker:  lock.NewEtcdLocker(client, lock.WithMaxTryLockTimeout(opts.Timeout)),
 	}, nil
 }
 
 type impl struct {
-	tasks map[string]interface{}
-	opts  *Options
+	tasksMx *sync.Mutex
+	tasks   map[string]interface{}
+	opts    *Options
 
 	locker lock.Locker
 	logger Logger
@@ -64,6 +67,9 @@ func (i *impl) Every(count uint) *builder.Builder {
 }
 
 func (i *impl) Run(ctx context.Context, task models.Task) error {
+	i.tasksMx.Lock()
+	defer i.tasksMx.Unlock()
+
 	if err := i.validateTask(task); err != nil {
 		return fmt.Errorf("failed to validate task: %w", err)
 	}
