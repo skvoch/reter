@@ -1,12 +1,68 @@
 package scheduler
 
 import (
+	"bou.ke/monkey"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
 
 	"github.com/skvoch/reter/scheduler/models"
 )
+
+func DatePtr(year int, month time.Month, day, hour, min, sec, nsec int) *time.Time {
+	if year == 0 && month == 0 && day == 0 && hour == 0 && sec == 0 && nsec == 0 {
+		return nil
+	}
+
+	out := time.Date(year, month, day, hour, min, sec, nsec, time.UTC)
+	return &out
+}
+
+func TestIsTimeSinceLastActionGreaterInterval(t *testing.T) {
+	cases := []struct {
+		Name           string
+		LastActionTime *time.Time
+		Now            time.Time
+		Interval       time.Duration
+
+		Expect bool
+	}{
+		{
+			Name:           "#1",
+			LastActionTime: DatePtr(2021, 01, 01, 12, 0, 0, 0),
+			Now:            time.Date(2021, 01, 01, 12, 16, 0, 0, time.UTC),
+			Interval:       time.Minute * 15,
+			Expect:         true,
+		},
+		{
+			Name:           "#2",
+			LastActionTime: DatePtr(2021, 01, 01, 12, 0, 0, 0),
+			Now:            time.Date(2021, 01, 01, 12, 13, 0, 0, time.UTC),
+			Interval:       time.Minute * 15,
+			Expect:         false,
+		},
+		{
+			Name:           "#3",
+			LastActionTime: nil,
+			Now:            time.Date(2021, 01, 01, 12, 13, 0, 0, time.UTC),
+			Interval:       time.Minute * 15,
+			Expect:         true,
+		},
+	}
+
+	impl := impl{}
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			monkey.Patch(time.Now, func() time.Time {
+				return c.Now
+			})
+
+			result := impl.isTimeSinceLastActionGreaterInterval(c.LastActionTime, c.Interval)
+			assert.Equal(t, c.Expect, result)
+		})
+	}
+
+}
 
 func TestValidateTask(t *testing.T) {
 	makeScheduler := func(taskNames ...string) *impl {
@@ -53,7 +109,7 @@ func TestValidateTask(t *testing.T) {
 			Task: models.Task{
 				Interval: time.Second,
 				Name:     "get_data",
-				Handler:  nil,
+				Handler:  func() {},
 			},
 		},
 	}

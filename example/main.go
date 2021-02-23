@@ -29,6 +29,7 @@ func main() {
 		Etcd: scheduler.EtcdOptions{
 			Endpoints:   []string{"127.0.0.1:2379"},
 			DialTimeout: time.Second * 5,
+			Timeout:     time.Second * 5,
 		},
 		LockTTL: time.Minute * 1,
 	})
