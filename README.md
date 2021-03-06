@@ -1,6 +1,11 @@
 # Reter - task scheduler with ectd locks
 ![Tests](https://github.com/skvoch/reter/workflows/tests/badge.svg)
 
+### Installation
+```bash
+go get github.com/skvoch/reter
+```
+
 ### Algorithm
 1. Checking the time since the last action
 2. If the difference between time.Now() and last action time less than interval - skipping
