@@ -14,7 +14,7 @@ go get github.com/skvoch/reter
 
 ### Example
 ```go
-s, err := scheduler.New(scheduler.Zerolog(log.Logger), &scheduler.Options{
+s, err := scheduler.New(logger.Zerolog(log.Logger), &scheduler.Options{
 		Etcd: scheduler.EtcdOptions{
 			Endpoints: []string{"127.0.0.1:2379"},
 		},
