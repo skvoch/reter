@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	go.etcd.io/etcd v3.3.25+incompatible
 	go.etcd.io/etcd/v3 v3.3.0-rc.0.0.20200518175753-732df43cf85b
-	go.uber.org/zap v1.16.0 // indirect
+	go.uber.org/zap v1.16.0
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
 	gopkg.in/errgo.v1 v1.0.1 // indirect
 )

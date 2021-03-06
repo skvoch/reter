@@ -4,13 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog/log"
-	"github.com/skvoch/reter/scheduler"
-	"golang.org/x/sync/errgroup"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/rs/zerolog/log"
+	"github.com/skvoch/reter/scheduler"
+	"github.com/skvoch/reter/scheduler/logger"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -25,7 +27,7 @@ func NotifySigterm() error {
 }
 
 func main() {
-	s, err := scheduler.New(scheduler.Zerolog(log.Logger), &scheduler.Options{
+	s, err := scheduler.New(logger.Zerolog(log.Logger), &scheduler.Options{
 		Etcd: scheduler.EtcdOptions{
 			Endpoints: []string{"127.0.0.1:2379"},
 		},
@@ -41,7 +43,7 @@ func main() {
 	g.Go(NotifySigterm)
 
 	g.Go(func() error {
-		return s.Every(30).Seconds().Do(ctx, "get_data", func() {
+		return s.Every(30).Seconds().Do(ctx, "print", func() {
 			fmt.Println("doing work")
 		})
 	})

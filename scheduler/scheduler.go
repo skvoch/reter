@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/skvoch/reter/scheduler/logger"
 	"sync"
 	"time"
 
@@ -33,7 +34,7 @@ type Scheduler interface {
 	Every(count uint) *builder.Builder
 }
 
-func New(logger Logger, opts *Options) (Scheduler, error) {
+func New(logger logger.Logger, opts *Options) (Scheduler, error) {
 	client, err := etcd.New(etcd.Config{
 		Endpoints: opts.Etcd.Endpoints,
 	})
@@ -58,7 +59,7 @@ type impl struct {
 	opts    *Options
 
 	locker lock.Locker
-	logger Logger
+	logger logger.Logger
 	etcd   *etcd.Client
 }
 
@@ -163,7 +164,7 @@ func (i *impl) isTimeSinceLastActionGreaterInterval(lastActionTime *time.Time, i
 func (i *impl) getLastActionTime(ctx context.Context, taskName string) (*time.Time, error) {
 	res, err := i.etcd.Get(ctx, taskName)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get last action time: %w", err)
+		return nil, err
 	}
 	if len(res.Kvs) == 0 {
 		return nil, nil
