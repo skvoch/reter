@@ -45,6 +45,13 @@ func (b *Builder) Minute() *Do {
 	}
 }
 
+func (b *Builder) Interval(interval time.Duration) *Do {
+	b.interval = interval
+	return &Do{
+		builder: b,
+	}
+}
+
 type Do struct {
 	builder *Builder
 }

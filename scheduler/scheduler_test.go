@@ -2,12 +2,30 @@ package scheduler
 
 import (
 	"bou.ke/monkey"
-	"github.com/stretchr/testify/assert"
+	"context"
+	"sync"
 	"testing"
 	"time"
 
+	"github.com/rs/zerolog/log"
+	"github.com/skvoch/reter/scheduler/builder"
+	"github.com/skvoch/reter/scheduler/logger"
 	"github.com/skvoch/reter/scheduler/models"
+	"github.com/stretchr/testify/assert"
 )
+
+func makeScheduler(taskNames ...string) *impl {
+	out := &impl{
+		tasks:   make(map[string]interface{}),
+		tasksMx: &sync.Mutex{},
+		logger:  logger.Zerolog(log.Logger),
+	}
+
+	for _, name := range taskNames {
+		out.tasks[name] = struct{}{}
+	}
+	return out
+}
 
 func DatePtr(year int, month time.Month, day, hour, min, sec, nsec int) *time.Time {
 	if year == 0 && month == 0 && day == 0 && hour == 0 && sec == 0 && nsec == 0 {
@@ -16,6 +34,40 @@ func DatePtr(year int, month time.Month, day, hour, min, sec, nsec int) *time.Ti
 
 	out := time.Date(year, month, day, hour, min, sec, nsec, time.UTC)
 	return &out
+}
+
+func TestEvery(t *testing.T) {
+	cases := []struct {
+		Name    string
+		IsError bool
+		Prepare func() *builder.Do
+	}{
+		{
+			Name:    "#1",
+			IsError: true,
+			Prepare: func() *builder.Do {
+				s := makeScheduler()
+				return s.Every().Interval(0)
+			},
+		},
+		{
+			Name:    "#2",
+			IsError: true,
+			Prepare: func() *builder.Do {
+				s := makeScheduler()
+				return s.Every().Minute()
+			},
+		},
+	}
+
+	for _, c := range cases {
+		err := c.Prepare().Do(context.Background(), "func", func() {})
+		if c.IsError {
+			assert.Error(t, err)
+		} else {
+			assert.NoError(t, err)
+		}
+	}
 }
 
 func TestIsTimeSinceLastActionGreaterInterval(t *testing.T) {
@@ -65,16 +117,6 @@ func TestIsTimeSinceLastActionGreaterInterval(t *testing.T) {
 }
 
 func TestValidateTask(t *testing.T) {
-	makeScheduler := func(taskNames ...string) *impl {
-		out := &impl{
-			tasks: make(map[string]interface{}),
-		}
-
-		for _, name := range taskNames {
-			out.tasks[name] = struct{}{}
-		}
-		return out
-	}
 
 	cases := []struct {
 		Name      string

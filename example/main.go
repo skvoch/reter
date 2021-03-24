@@ -19,11 +19,19 @@ var (
 	ErrSigint = errors.New("sigint or sigterm")
 )
 
-func NotifySigterm() error {
+func NotifySigterm(ctx context.Context) error {
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
-	<-s
-	return ErrSigint
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+
+		case <-s:
+			return ErrSigint
+		}
+	}
 }
 
 func main() {
@@ -40,11 +48,18 @@ func main() {
 	}
 	g, ctx := errgroup.WithContext(context.Background())
 
-	g.Go(NotifySigterm)
+	g.Go(func() error {
+		return NotifySigterm(ctx)
+	})
 
 	g.Go(func() error {
-		return s.Every(30).Seconds().Do(ctx, "print", func() {
-			fmt.Println("doing work")
+		return s.Every(30).Seconds().Do(ctx, "print 1", func() {
+			fmt.Println("print 1")
+		})
+	})
+	g.Go(func() error {
+		return s.Every().Interval(time.Second).Do(ctx, "print 2", func() {
+			fmt.Println("print 2")
 		})
 	})
 

@@ -27,12 +27,20 @@ if err != nil {
 }
 
 g, ctx := errgroup.WithContext(context.Background())
+
 g.Go(func() error {
-	return s.Every(30).Seconds().Do(ctx, "task_name", func() {
-		fmt.Println("doing work")
+	return s.Every(30).Seconds().Do(ctx, "print 1", func() {
+		fmt.Println("print 1")
+	})
+})
+
+g.Go(func() error {
+	return s.Every().Interval(time.Second).Do(ctx, "print 2", func() {
+		fmt.Println("print 2")
 	})
 })
 ```
+
 
 ### Warning
 If you have some issue with building your application, please put these lines to *go.mod* file
