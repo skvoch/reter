@@ -31,7 +31,7 @@ type Options struct {
 }
 
 type Scheduler interface {
-	Every(count uint) *builder.Builder
+	Every(count ...uint) *builder.Builder
 }
 
 func New(logger logger.Logger, opts *Options) (Scheduler, error) {
@@ -63,28 +63,41 @@ type impl struct {
 	etcd   *etcd.Client
 }
 
-func (i *impl) Every(count uint) *builder.Builder {
+func (i *impl) Every(inputCount ...uint) *builder.Builder {
+	var count uint
+
+	if len(inputCount) != 0 {
+		count = inputCount[0]
+	}
+
 	return builder.New(i, count)
 }
 
 func (i *impl) Run(ctx context.Context, task models.Task) error {
-	i.tasksMx.Lock()
-	defer i.tasksMx.Unlock()
-
 	if err := i.validateTask(task); err != nil {
 		return fmt.Errorf("failed to validate task: %w", err)
 	}
 
-	i.tasks[task.Name] = struct{}{}
+	i.setTask(task.Name)
 	i.watcher(ctx, task)
 
 	return nil
+}
+
+func (i *impl) setTask(name string) {
+	i.tasksMx.Lock()
+	defer i.tasksMx.Unlock()
+
+	i.tasks[name] = struct{}{}
 }
 
 func (i *impl) validateTask(task models.Task) error {
 	if task.Handler == nil {
 		return ErrNilHandler
 	}
+
+	i.tasksMx.Lock()
+	defer i.tasksMx.Unlock()
 
 	_, ok := i.tasks[task.Name]
 	if ok {

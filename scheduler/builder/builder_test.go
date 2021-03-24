@@ -46,6 +46,21 @@ func TestBuilding(t *testing.T) {
 				return builder.Minute().Do(context.Background(), "func", nil)
 			},
 		},
+		{
+			Name: "Interval",
+			BuildFunc: func(t *testing.T) error {
+				controller := gomock.NewController(t)
+				runner := m.NewMockRunner(controller)
+				runner.EXPECT().Run(context.Background(), models.Task{
+					Handler:  nil,
+					Interval: time.Minute * 10,
+					Name:     "func",
+				})
+
+				builder := New(runner, 10)
+				return builder.Interval(time.Minute*10).Do(context.Background(), "func", nil)
+			},
+		},
 	}
 
 	for _, c := range cases {
