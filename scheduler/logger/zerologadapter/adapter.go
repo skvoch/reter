@@ -3,7 +3,7 @@ package zerologadapter
 
 import (
 	"context"
-	"github.com/skvoch/reter/scheduler"
+	"github.com/skvoch/reter/scheduler/logger"
 
 	"github.com/rs/zerolog"
 )
@@ -18,18 +18,18 @@ func NewLogger(logger zerolog.Logger) *Logger {
 	}
 }
 
-func (pl *Logger) Log(ctx context.Context, level scheduler.LogLevel, msg string, data map[string]interface{}) {
+func (pl *Logger) Log(ctx context.Context, level logger.LogLevel, msg string, data map[string]interface{}) {
 	var zlevel zerolog.Level
 	switch level {
-	case scheduler.LogLevelNone:
+	case logger.LogLevelNone:
 		zlevel = zerolog.NoLevel
-	case scheduler.LogLevelError:
+	case logger.LogLevelError:
 		zlevel = zerolog.ErrorLevel
-	case scheduler.LogLevelWarn:
+	case logger.LogLevelWarn:
 		zlevel = zerolog.WarnLevel
-	case scheduler.LogLevelInfo:
+	case logger.LogLevelInfo:
 		zlevel = zerolog.InfoLevel
-	case scheduler.LogLevelDebug:
+	case logger.LogLevelDebug:
 		zlevel = zerolog.DebugLevel
 	default:
 		zlevel = zerolog.DebugLevel

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/skvoch/reter/scheduler/logger"
 	"go.uber.org/zap"
 	"sync"
 	"time"
@@ -35,7 +36,7 @@ type Scheduler interface {
 	Every(count ...uint) *builder.Builder
 }
 
-func New(logger Logger, opts *Options) (Scheduler, error) {
+func New(logger logger.Logger, opts *Options) (Scheduler, error) {
 	zapConfig := zap.NewProductionConfig()
 	zapConfig.Level.SetLevel(zap.ErrorLevel)
 	if opts.Etcd.LogWarnings {
@@ -67,7 +68,7 @@ type impl struct {
 	opts    *Options
 
 	locker lock.Locker
-	logger Logger
+	logger logger.Logger
 	etcd   *etcd.Client
 }
 
@@ -115,19 +116,19 @@ func (i *impl) validateTask(task models.Task) error {
 }
 
 func (i *impl) watcher(ctx context.Context, task models.Task) {
-	i.logger.Log(ctx, LogLevelInfo, "running task", map[string]interface{}{"task_name": task.Name})
+	i.logger.Log(ctx, logger.LogLevelInfo, "running task", map[string]interface{}{"task_name": task.Name})
 	ticker := time.NewTicker(task.Interval)
 
 	for {
 		select {
 		case <-ctx.Done():
-			i.logger.Log(ctx, LogLevelInfo, "task has been finished", map[string]interface{}{"task_name": task.Name})
+			i.logger.Log(ctx, logger.LogLevelInfo, "task has been finished", map[string]interface{}{"task_name": task.Name})
 
 			return
 
 		case <-ticker.C:
 			if err := i.handler(ctx, task); err != nil {
-				i.logger.Log(ctx, LogLevelError, "trying to run handler function", map[string]interface{}{"error": err})
+				i.logger.Log(ctx, logger.LogLevelError, "trying to run handler function", map[string]interface{}{"error": err})
 			}
 		}
 	}
@@ -144,19 +145,19 @@ func (i *impl) handler(ctx context.Context, task models.Task) error {
 	}
 
 	if !i.isTimeSinceLastActionGreaterInterval(lastActionTime, task.Interval) {
-		i.logger.Log(ctx, LogLevelDebug, "time since last action less than interval", map[string]interface{}{"task_name": task.Name})
+		i.logger.Log(ctx, logger.LogLevelDebug, "time since last action less than interval", map[string]interface{}{"task_name": task.Name})
 		return nil
 	}
 
 	if l, err = i.locker.Acquire(i.contextWithTimeout(ctx), task.Name, int(i.opts.LockTTL.Seconds())); err != nil {
 		if errors.Is(err, &lock.ErrAlreadyLocked{}) {
-			i.logger.Log(ctx, LogLevelDebug, "task already locked", map[string]interface{}{"task_name": task.Name})
+			i.logger.Log(ctx, logger.LogLevelDebug, "task already locked", map[string]interface{}{"task_name": task.Name})
 			return nil
 		}
 		return fmt.Errorf("failed to acquire locker: %w", err)
 	}
 
-	i.logger.Log(ctx, LogLevelDebug, "locker has been locked", map[string]interface{}{"task_name": task.Name})
+	i.logger.Log(ctx, logger.LogLevelDebug, "locker has been locked", map[string]interface{}{"task_name": task.Name})
 
 	task.Handler()
 
@@ -168,7 +169,7 @@ func (i *impl) handler(ctx context.Context, task models.Task) error {
 		return fmt.Errorf("failed to release locker: %w", err)
 	}
 
-	i.logger.Log(ctx, LogLevelDebug, "locker has been released", map[string]interface{}{"task_name": task.Name})
+	i.logger.Log(ctx, logger.LogLevelDebug, "locker has been released", map[string]interface{}{"task_name": task.Name})
 	return nil
 }
 

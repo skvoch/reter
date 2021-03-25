@@ -4,7 +4,7 @@ package logrusadapter
 
 import (
 	"context"
-	"github.com/skvoch/reter/scheduler"
+	"github.com/skvoch/reter/scheduler/logger"
 
 	"github.com/sirupsen/logrus"
 )
@@ -17,26 +17,26 @@ func NewLogger(l logrus.FieldLogger) *Logger {
 	return &Logger{l: l}
 }
 
-func (l *Logger) Log(ctx context.Context, level scheduler.LogLevel, msg string, data map[string]interface{}) {
-	var logger logrus.FieldLogger
+func (l *Logger) Log(ctx context.Context, level logger.LogLevel, msg string, data map[string]interface{}) {
+	var log logrus.FieldLogger
 	if data != nil {
-		logger = l.l.WithFields(data)
+		log = l.l.WithFields(data)
 	} else {
-		logger = l.l
+		log = l.l
 	}
 
 	switch level {
-	case scheduler.LogLevelTrace:
-		logger.WithField("RETER_LOG_LEVEL", level).Debug(msg)
-	case scheduler.LogLevelDebug:
-		logger.Debug(msg)
-	case scheduler.LogLevelInfo:
-		logger.Info(msg)
-	case scheduler.LogLevelWarn:
-		logger.Warn(msg)
-	case scheduler.LogLevelError:
-		logger.Error(msg)
+	case logger.LogLevelTrace:
+		log.WithField("RETER_LOG_LEVEL", level).Debug(msg)
+	case logger.LogLevelDebug:
+		log.Debug(msg)
+	case logger.LogLevelInfo:
+		log.Info(msg)
+	case logger.LogLevelWarn:
+		log.Warn(msg)
+	case logger.LogLevelError:
+		log.Error(msg)
 	default:
-		logger.WithField("INVALID_RETER_LOG_LEVEL", level).Error(msg)
+		log.WithField("INVALID_RETER_LOG_LEVEL", level).Error(msg)
 	}
 }

@@ -4,7 +4,7 @@ package log15adapter
 
 import (
 	"context"
-	"github.com/skvoch/reter/scheduler"
+	"github.com/skvoch/reter/scheduler/logger"
 )
 
 // Log15Logger interface defines the subset of
@@ -25,22 +25,22 @@ func NewLogger(l Log15Logger) *Logger {
 	return &Logger{l: l}
 }
 
-func (l *Logger) Log(ctx context.Context, level scheduler.LogLevel, msg string, data map[string]interface{}) {
+func (l *Logger) Log(ctx context.Context, level logger.LogLevel, msg string, data map[string]interface{}) {
 	logArgs := make([]interface{}, 0, len(data))
 	for k, v := range data {
 		logArgs = append(logArgs, k, v)
 	}
 
 	switch level {
-	case scheduler.LogLevelTrace:
+	case logger.LogLevelTrace:
 		l.l.Debug(msg, append(logArgs, "RETER_LOG_LEVEL", level)...)
-	case scheduler.LogLevelDebug:
+	case logger.LogLevelDebug:
 		l.l.Debug(msg, logArgs...)
-	case scheduler.LogLevelInfo:
+	case logger.LogLevelInfo:
 		l.l.Info(msg, logArgs...)
-	case scheduler.LogLevelWarn:
+	case logger.LogLevelWarn:
 		l.l.Warn(msg, logArgs...)
-	case scheduler.LogLevelError:
+	case logger.LogLevelError:
 		l.l.Error(msg, logArgs...)
 	default:
 		l.l.Error(msg, append(logArgs, "INVALID_RETER_LOG_LEVEL", level)...)

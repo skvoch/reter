@@ -3,7 +3,7 @@ package zapadapter
 
 import (
 	"context"
-	"github.com/skvoch/reter/scheduler"
+	"github.com/skvoch/reter/scheduler/logger"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -17,7 +17,7 @@ func NewLogger(logger *zap.Logger) *Logger {
 	return &Logger{logger: logger.WithOptions(zap.AddCallerSkip(1))}
 }
 
-func (pl *Logger) Log(ctx context.Context, level scheduler.LogLevel, msg string, data map[string]interface{}) {
+func (pl *Logger) Log(ctx context.Context, level logger.LogLevel, msg string, data map[string]interface{}) {
 	fields := make([]zapcore.Field, len(data))
 	i := 0
 	for k, v := range data {
@@ -26,15 +26,15 @@ func (pl *Logger) Log(ctx context.Context, level scheduler.LogLevel, msg string,
 	}
 
 	switch level {
-	case scheduler.LogLevelTrace:
+	case logger.LogLevelTrace:
 		pl.logger.Debug(msg, append(fields, zap.Stringer("RETER_LOG_LEVEL", level))...)
-	case scheduler.LogLevelDebug:
+	case logger.LogLevelDebug:
 		pl.logger.Debug(msg, fields...)
-	case scheduler.LogLevelInfo:
+	case logger.LogLevelInfo:
 		pl.logger.Info(msg, fields...)
-	case scheduler.LogLevelWarn:
+	case logger.LogLevelWarn:
 		pl.logger.Warn(msg, fields...)
-	case scheduler.LogLevelError:
+	case logger.LogLevelError:
 		pl.logger.Error(msg, fields...)
 	default:
 		pl.logger.Error(msg, append(fields, zap.Stringer("INVALID_RETER_LOG_LEVEL", level))...)
