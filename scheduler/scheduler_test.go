@@ -3,13 +3,13 @@ package scheduler
 import (
 	"bou.ke/monkey"
 	"context"
+	"github.com/skvoch/reter/scheduler/logger/zerologadapter"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/skvoch/reter/scheduler/builder"
-	"github.com/skvoch/reter/scheduler/logger"
 	"github.com/skvoch/reter/scheduler/models"
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +18,7 @@ func makeScheduler(taskNames ...string) *impl {
 	out := &impl{
 		tasks:   make(map[string]interface{}),
 		tasksMx: &sync.Mutex{},
-		logger:  logger.Zerolog(log.Logger),
+		logger:  zerologadapter.NewLogger(log.Logger),
 	}
 
 	for _, name := range taskNames {
