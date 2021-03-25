@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.uber.org/zap"
 	"sync"
 	"time"
 
@@ -20,7 +21,8 @@ var (
 )
 
 type EtcdOptions struct {
-	Endpoints []string
+	Endpoints   []string
+	LogWarnings bool
 }
 
 type Options struct {
@@ -34,8 +36,15 @@ type Scheduler interface {
 }
 
 func New(logger Logger, opts *Options) (Scheduler, error) {
+	zapConfig := zap.NewProductionConfig()
+	zapConfig.Level.SetLevel(zap.ErrorLevel)
+	if opts.Etcd.LogWarnings {
+		zapConfig.Level.SetLevel(zap.WarnLevel)
+	}
+
 	client, err := etcd.New(etcd.Config{
 		Endpoints: opts.Etcd.Endpoints,
+		LogConfig: &zapConfig,
 	})
 
 	if err != nil {
