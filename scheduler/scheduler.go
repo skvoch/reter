@@ -122,8 +122,8 @@ func (i *impl) watcher(ctx context.Context, task models.Task) {
 	for {
 		select {
 		case <-ctx.Done():
+			ticker.Stop()
 			i.logger.Log(ctx, logger.LogLevelInfo, "task has been finished", map[string]interface{}{"task_name": task.Name})
-
 			return
 
 		case <-ticker.C:
