@@ -42,7 +42,7 @@ g.Go(func() error {
 ```
 
 ### Logging
-Package contains few adapters for the most popular loggers: 
+Package contains several adapters for the most popular loggers:
 * go-kit
 * log15
 * logrus
