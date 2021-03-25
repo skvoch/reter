@@ -14,7 +14,7 @@ go get github.com/skvoch/reter
 
 ### Example
 ```go
-s, err := scheduler.New(logger.Zerolog(log.Logger), &scheduler.Options{
+s, err := scheduler.New(zerologadapter.NewLogger(log.Logger), &scheduler.Options{
 		Etcd: scheduler.EtcdOptions{
 			Endpoints: []string{"127.0.0.1:2379"},
 		},
@@ -41,6 +41,13 @@ g.Go(func() error {
 })
 ```
 
+### Logging
+Package contains few adapters for the most popular loggers: 
+* go-kit
+* log15
+* logrus
+* zap
+* zerolog
 
 ### Warning
 If you have some issue with building your application, please put these lines to *go.mod* file

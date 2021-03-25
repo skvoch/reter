@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/skvoch/reter/scheduler/logger/zerologadapter"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,7 +12,6 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/skvoch/reter/scheduler"
-	"github.com/skvoch/reter/scheduler/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -35,7 +35,7 @@ func NotifySigterm(ctx context.Context) error {
 }
 
 func main() {
-	s, err := scheduler.New(logger.Zerolog(log.Logger), &scheduler.Options{
+	s, err := scheduler.New(zerologadapter.NewLogger(log.Logger), &scheduler.Options{
 		Etcd: scheduler.EtcdOptions{
 			Endpoints: []string{"127.0.0.1:2379"},
 		},
