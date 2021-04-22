@@ -88,7 +88,15 @@ func (i *impl) Run(ctx context.Context, task models.Task) error {
 	}
 
 	i.setTask(task.Name)
-	i.watcher(ctx, task)
+
+	switch task.TickerType {
+	case models.TickerInterval:
+		i.watcherInterval(ctx, task)
+	case models.TickerTime:
+		i.watcherTime(ctx, task)
+	default:
+		return fmt.Errorf("failed to run task: unknown ticker type %v", task.TickerType)
+	}
 
 	return nil
 }
@@ -115,7 +123,7 @@ func (i *impl) validateTask(task models.Task) error {
 	return nil
 }
 
-func (i *impl) watcher(ctx context.Context, task models.Task) {
+func (i *impl) watcherInterval(ctx context.Context, task models.Task) {
 	i.logger.Log(ctx, logger.LogLevelInfo, "running task", map[string]interface{}{"task_name": task.Name})
 	ticker := time.NewTicker(task.Interval)
 
@@ -129,6 +137,50 @@ func (i *impl) watcher(ctx context.Context, task models.Task) {
 		case <-ticker.C:
 			if err := i.handler(ctx, task); err != nil {
 				i.logger.Log(ctx, logger.LogLevelError, "trying to run handler function", map[string]interface{}{"error": err})
+			}
+		}
+	}
+}
+
+func (i *impl) watcherTime(ctx context.Context, task models.Task) {
+	i.logger.Log(ctx, logger.LogLevelInfo, "running task", map[string]interface{}{"task_name": task.Name})
+
+MainLoop:
+	for {
+		now := time.Now()
+		target := time.Date(now.Year(), now.Month(), now.Day(), task.Hour, task.Minute, task.Second, 0, now.Location())
+		diff := target.Sub(now)
+
+		if diff < 0 {
+			diff = diff + (time.Hour * 24)
+		}
+		timer := time.NewTimer(diff)
+
+		for {
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				i.logger.Log(ctx, logger.LogLevelInfo, "task has been finished", map[string]interface{}{"task_name": task.Name})
+				return
+
+			case <-timer.C:
+				for {
+					select {
+					case <-ctx.Done():
+						timer.Stop()
+						i.logger.Log(ctx, logger.LogLevelInfo, "task has been finished", map[string]interface{}{"task_name": task.Name})
+						return
+
+					default:
+						if err := i.handler(ctx, task); err != nil {
+							i.logger.Log(ctx, logger.LogLevelError, "trying to run handler function", map[string]interface{}{"error": err})
+							time.Sleep(time.Second * 3)
+							continue
+						}
+						timer.Stop()
+						goto MainLoop
+					}
+				}
 			}
 		}
 	}

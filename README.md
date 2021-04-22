@@ -29,14 +29,20 @@ if err != nil {
 g, ctx := errgroup.WithContext(context.Background())
 
 g.Go(func() error {
-	return s.Every(30).Seconds().Do(ctx, "print 1", func() {
-		fmt.Println("print 1")
+	return s.Every(30).Seconds().Do(ctx, "seconds", func() {
+		fmt.Println("print every 10 second")
 	})
 })
 
 g.Go(func() error {
-	return s.Every().Interval(time.Second).Do(ctx, "print 2", func() {
-		fmt.Println("print 2")
+	return s.Every().Interval(time.Second*3).Do(ctx, "interval", func() {
+		fmt.Println("print every 3 second")
+	})
+})
+
+g.Go(func() error {
+	return s.Every().Time("11-00-00").Do(ctx, "time", func() {
+		fmt.Println("print once a day at 11-00-00 time")
 	})
 })
 ```
