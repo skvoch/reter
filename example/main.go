@@ -53,13 +53,18 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return s.Every(30).Seconds().Do(ctx, "print 1", func() {
+		return s.Every(2).Seconds().Do(ctx, "print 1", func() {
 			fmt.Println("print 1")
 		})
 	})
 	g.Go(func() error {
 		return s.Every().Interval(time.Second).Do(ctx, "print 2", func() {
 			fmt.Println("print 2")
+		})
+	})
+	g.Go(func() error {
+		return s.Every().Time("11-00-00").Do(ctx, "time", func() {
+			fmt.Println("print 3")
 		})
 	})
 
