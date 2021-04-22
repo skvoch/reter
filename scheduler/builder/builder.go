@@ -11,6 +11,7 @@ import (
 var (
 	ErrEmptyTaskName      = errors.New("task name is nil")
 	ErrTaskIntervalIsZero = errors.New("task interval is zero")
+	ErrInvalidTimeFormat  = errors.New("invalid time format")
 )
 
 type Runner interface {
@@ -92,7 +93,7 @@ func (d *Do) Do(ctx context.Context, name string, handler func()) error {
 	if task.TickerType == models.TickerTime {
 		hour, minute, second, err := models.ParseTime(d.builder.timeStr)
 		if err != nil {
-			return fmt.Errorf("failed to parse time: %w", err)
+			return fmt.Errorf("%w: %s", ErrInvalidTimeFormat, err.Error())
 		}
 		task.Hour = hour
 		task.Minute = minute
