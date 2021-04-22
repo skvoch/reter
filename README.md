@@ -1,4 +1,4 @@
-# Reter - task scheduler with ectd locks
+# Reter - tassk scheduler with synchronization over etcd
 ![Tests](https://github.com/skvoch/reter/workflows/tests/badge.svg)
 
 ### Installation
