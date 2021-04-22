@@ -39,12 +39,6 @@ g.Go(func() error {
 		fmt.Println("print every 3 second")
 	})
 })
-
-g.Go(func() error {
-	return s.Every().Time("11-00-00").Do(ctx, "time", func() {
-		fmt.Println("print once a day at 11-00-00 time")
-	})
-})
 ```
 
 ### Logging
