@@ -1,9 +1,9 @@
 # Reter - tassk scheduler with synchronization over etcd
-![Tests](https://github.com/skvoch/reter/workflows/tests/badge.svg)
+![Tests](https://github.com/aliykh/reter/workflows/tests/badge.svg)
 
 ### Installation
 ```bash
-go get github.com/skvoch/reter
+go get github.com/aliykh/reter
 ```
 
 ### Algorithm
