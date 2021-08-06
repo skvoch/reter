@@ -3,7 +3,7 @@ package zerologadapter
 
 import (
 	"context"
-	"github.com/skvoch/reter/scheduler/logger"
+	"github.com/aliykh/reter/scheduler/logger"
 
 	"github.com/rs/zerolog"
 )

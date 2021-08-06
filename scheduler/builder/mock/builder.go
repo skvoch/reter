@@ -7,7 +7,7 @@ package mock_builder
 import (
 	context "context"
 	gomock "github.com/golang/mock/gomock"
-	models "github.com/skvoch/reter/scheduler/models"
+	models "github.com/aliykh/reter/scheduler/models"
 	reflect "reflect"
 )
 

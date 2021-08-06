@@ -4,7 +4,7 @@ package logrusadapter
 
 import (
 	"context"
-	"github.com/skvoch/reter/scheduler/logger"
+	"github.com/aliykh/reter/scheduler/logger"
 
 	"github.com/sirupsen/logrus"
 )

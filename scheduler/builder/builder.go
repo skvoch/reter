@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/skvoch/reter/scheduler/models"
+	"github.com/aliykh/reter/scheduler/models"
 	"time"
 )
 

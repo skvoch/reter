@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/skvoch/reter/scheduler/logger"
+	"github.com/aliykh/reter/scheduler/logger"
 	"go.uber.org/zap"
 	"sync"
 	"time"
 
 	"github.com/Scalingo/go-etcd-lock/v5/lock"
-	"github.com/skvoch/reter/scheduler/builder"
-	"github.com/skvoch/reter/scheduler/models"
+	"github.com/aliykh/reter/scheduler/builder"
+	"github.com/aliykh/reter/scheduler/models"
 
 	etcd "go.etcd.io/etcd/client/v3"
 )

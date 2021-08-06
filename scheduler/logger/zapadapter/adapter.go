@@ -3,7 +3,7 @@ package zapadapter
 
 import (
 	"context"
-	"github.com/skvoch/reter/scheduler/logger"
+	"github.com/aliykh/reter/scheduler/logger"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

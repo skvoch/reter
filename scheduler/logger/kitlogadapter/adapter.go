@@ -2,7 +2,7 @@ package kitlogadapter
 
 import (
 	"context"
-	"github.com/skvoch/reter/scheduler/logger"
+	"github.com/aliykh/reter/scheduler/logger"
 
 	"github.com/go-kit/kit/log"
 	kitlevel "github.com/go-kit/kit/log/level"
