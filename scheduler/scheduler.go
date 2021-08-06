@@ -9,11 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/skvoch/go-etcd-lock/v5/lock"
+	"github.com/Scalingo/go-etcd-lock/v5/lock"
 	"github.com/skvoch/reter/scheduler/builder"
 	"github.com/skvoch/reter/scheduler/models"
 
-	etcd "go.etcd.io/etcd/v3/clientv3"
+	etcd "go.etcd.io/etcd/client/v3"
 )
 
 var (
@@ -201,7 +201,7 @@ func (i *impl) handler(ctx context.Context, task models.Task) error {
 		return nil
 	}
 
-	if l, err = i.locker.Acquire(i.contextWithTimeout(ctx), task.Name, int(i.opts.LockTTL.Seconds())); err != nil {
+	if l, err = i.locker.Acquire(task.Name, int(i.opts.LockTTL.Seconds())); err != nil {
 		if errors.Is(err, &lock.ErrAlreadyLocked{}) {
 			i.logger.Log(ctx, logger.LogLevelDebug, "task already locked", map[string]interface{}{"task_name": task.Name})
 			return nil
