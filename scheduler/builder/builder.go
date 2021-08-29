@@ -61,7 +61,8 @@ func (b *Builder) Interval(interval time.Duration) *Do {
 	}
 }
 
-func (b *Builder) Time(time string) *Do {
+// TODO: this method does not work as expected, it needs additional tests
+func (b *Builder) time(time string) *Do {
 	b.timeStr = time
 	b.tickerType = models.TickerTime
 

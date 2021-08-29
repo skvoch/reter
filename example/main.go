@@ -64,12 +64,6 @@ func main() {
 		})
 	})
 
-	g.Go(func() error {
-		return s.Every().Time("11-00-00").Do(ctx, "time", func() {
-			fmt.Println("print once a day at 11-00-00 time")
-		})
-	})
-
 	if err := g.Wait(); err != nil {
 		if errors.Is(err, ErrSigint) {
 			log.Info().Msg("graceful shutdown")

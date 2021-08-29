@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/skvoch/reter/scheduler/logger"
-	"go.uber.org/zap"
 	"sync"
 	"time"
+
+	"github.com/skvoch/reter/scheduler/logger"
+	etcd "go.etcd.io/etcd/client/v3"
+	"go.uber.org/zap"
 
 	"github.com/skvoch/go-etcd-lock/v5/lock"
 	"github.com/skvoch/reter/scheduler/builder"
 	"github.com/skvoch/reter/scheduler/models"
-
-	etcd "go.etcd.io/etcd/v3/clientv3"
 )
 
 var (
