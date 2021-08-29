@@ -79,7 +79,7 @@ func TestBuilding(t *testing.T) {
 				})
 
 				builder := New(runner, 10)
-				return builder.Time("22-15-30").Do(context.Background(), "func", nil)
+				return builder.time("22-15-30").Do(context.Background(), "func", nil)
 			},
 		},
 	}
@@ -127,7 +127,7 @@ func TestIncorrectInputs(t *testing.T) {
 				runner := m.NewMockRunner(controller)
 
 				builder := New(runner, 0)
-				return builder.Time("rude-invalid-string").Do(context.Background(), "task", func() {})
+				return builder.time("rude-invalid-string").Do(context.Background(), "task", func() {})
 			},
 			Error: ErrInvalidTimeFormat,
 		},
@@ -138,7 +138,7 @@ func TestIncorrectInputs(t *testing.T) {
 				runner := m.NewMockRunner(controller)
 
 				builder := New(runner, 0)
-				return builder.Time("24-68-00").Do(context.Background(), "task", func() {})
+				return builder.time("24-68-00").Do(context.Background(), "task", func() {})
 			},
 			Error: ErrInvalidTimeFormat,
 		},
@@ -149,7 +149,7 @@ func TestIncorrectInputs(t *testing.T) {
 				runner := m.NewMockRunner(controller)
 
 				builder := New(runner, 0)
-				return builder.Time("25-00-00").Do(context.Background(), "task", func() {})
+				return builder.time("25-00-00").Do(context.Background(), "task", func() {})
 			},
 			Error: ErrInvalidTimeFormat,
 		},
@@ -160,7 +160,7 @@ func TestIncorrectInputs(t *testing.T) {
 				runner := m.NewMockRunner(controller)
 
 				builder := New(runner, 0)
-				return builder.Time("23-00-88").Do(context.Background(), "task", func() {})
+				return builder.time("23-00-88").Do(context.Background(), "task", func() {})
 			},
 			Error: ErrInvalidTimeFormat,
 		},
