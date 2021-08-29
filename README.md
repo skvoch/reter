@@ -49,12 +49,3 @@ Package contains several adapters for the most popular loggers:
 * zap
 * zerolog
 
-### Warning
-If you have some issue with building your application, please put these lines to *go.mod* file
-```go
-replace (
-	github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.3
-	go.etcd.io/etcd => go.etcd.io/etcd v0.0.0-20200520232829-54ba9589114f
-	google.golang.org/grpc v1.32.0 => google.golang.org/grpc v1.26.0
-)
-```
