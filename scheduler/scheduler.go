@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"sync"
@@ -30,6 +31,7 @@ type Options struct {
 	Etcd    EtcdOptions
 	LockTTL time.Duration
 	Timeout time.Duration
+	TLS *tls.Config
 }
 
 type Scheduler interface {
@@ -46,6 +48,7 @@ func New(logger logger.Logger, opts *Options) (Scheduler, error) {
 	client, err := etcd.New(etcd.Config{
 		Endpoints: opts.Etcd.Endpoints,
 		LogConfig: &zapConfig,
+		TLS: opts.TLS,
 	})
 
 	if err != nil {
